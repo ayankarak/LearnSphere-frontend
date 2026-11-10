@@ -1,94 +1,121 @@
-import { Link } from "react-router-dom";
-import { GraduationCap, Mail, Lock } from "lucide-react";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { GraduationCap } from "lucide-react";
+import api from "../api/axios";
+
+import { useAuth } from "../context/AuthContext";
 
 function Login() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-10">
+    const navigate = useNavigate();
+    const { login } = useAuth();
 
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
+    const [formData, setFormData] = useState({
+        email: "",
+        password: "",
+    });
 
-        {/* Logo */}
-        <Link to="/" className="mb-8 flex items-center justify-center gap-2">
-          <div className="rounded-xl bg-blue-600 p-2 text-white">
-            <GraduationCap size={25} />
-          </div>
-          <span className="text-2xl font-bold text-gray-900">
-            Learn<span className="text-blue-600">Sphere</span>
-          </span>
-        </Link>
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
 
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Welcome Back!
-          </h1>
-          <p className="mt-2 text-sm text-gray-500">
-            Login to continue your learning journey.
-          </p>
+    const handleChange = (e) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value,
+        });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        setError("");
+        setLoading(true);
+
+        try {
+            const response = await api.post("/auth/login", formData);
+
+            await login(response.data.token);
+
+            alert("Login successful!");
+            navigate("/");
+        } catch (err) {
+            setError(
+                err.response?.data?.message || "Login failed. Please try again."
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+            <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg">
+                <Link to="/" className="flex items-center justify-center gap-2 mb-6">
+                    <GraduationCap size={32} className="text-indigo-600" />
+                    <span className="text-2xl font-bold text-gray-900">
+                        LearnSphere
+                    </span>
+                </Link>
+
+                <h2 className="text-2xl font-bold text-center mb-2">
+                    Welcome Back!
+                </h2>
+
+                <p className="text-gray-500 text-center mb-6">
+                    Login to continue learning.
+                </p>
+
+                {error && (
+                    <p className="bg-red-100 text-red-600 p-3 rounded-lg mb-4 text-sm">
+                        {error}
+                    </p>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <input
+                        type="email"
+                        name="email"
+                        placeholder="Email Address"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                        className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+
+                    <input
+                        type="password"
+                        name="password"
+                        placeholder="Password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        required
+                        className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 disabled:opacity-60"
+                    >
+                        {loading ? "Logging in..." : "Login"}
+                    </button>
+                </form>
+
+                <p className="text-center text-gray-600 mt-6">
+                    Don't have an account?{" "}
+                    <Link to="/register" className="text-indigo-600 font-semibold">
+                        Sign Up
+                    </Link>
+                </p>
+
+                <Link
+                    to="/"
+                    className="block text-center text-gray-500 text-sm mt-4 hover:text-indigo-600"
+                >
+                    Back to Home
+                </Link>
+            </div>
         </div>
-
-        <form className="space-y-5">
-
-          {/* Email */}
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-gray-700">
-              Email Address
-            </label>
-
-            <div className="flex items-center rounded-lg border border-gray-300 px-4 focus-within:border-blue-600">
-              <Mail size={19} className="text-gray-400" />
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="w-full px-3 py-3 outline-none"
-              />
-            </div>
-          </div>
-
-          {/* Password */}
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-gray-700">
-              Password
-            </label>
-
-            <div className="flex items-center rounded-lg border border-gray-300 px-4 focus-within:border-blue-600">
-              <Lock size={19} className="text-gray-400" />
-              <input
-                type="password"
-                placeholder="Enter your password"
-                className="w-full px-3 py-3 outline-none"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            className="w-full rounded-lg bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700"
-          >
-            Login
-          </button>
-
-        </form>
-
-        <p className="mt-6 text-center text-sm text-gray-600">
-          Don't have an account?{" "}
-          <Link
-            to="/register"
-            className="font-semibold text-blue-600 hover:underline"
-          >
-            Sign Up
-          </Link>
-        </p>
-
-        <Link
-          to="/"
-          className="mt-5 block text-center text-sm text-gray-500 hover:text-blue-600"
-        >
-          Back to Home
-        </Link>
-
-      </div>
-    </div>
-  );
+    );
 }
 
 export default Login;

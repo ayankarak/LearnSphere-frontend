@@ -1,131 +1,182 @@
+
 import { useState } from "react";
-import { Link, NavLink } from "react-router-dom";
-import { GraduationCap, Menu, X, LogIn, UserPlus } from "lucide-react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import {GraduationCap,Menu,X,LogIn,UserPlus,LogOut} from "lucide-react";
+
+import { useAuth } from "../context/AuthContext";
 
 function Navbar() {
-  const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
 
-  const navLinks = [
-    { name: "Home", path: "/" },
-    { name: "Explore Courses", path: "/courses" },
-    { name: "Categories", path: "/categories" },
-  ];
+    const { user, logout, loading } = useAuth();
+    const navigate = useNavigate();
 
-  const closeMenu = () => setIsOpen(false);
+    const navLinks = [
+        { name: "Home", path: "/" },
+        { name: "Explore Courses", path: "/courses" },
+        { name: "Categories", path: "/categories" },
+        ...(user ? [{ name: "Dashboard", path: "/dashboard" }] : []),
+    ];
 
-  return (
-    <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur-md">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
+    const closeMenu = () => setIsOpen(false);
 
-        {/* Logo */}
-        <Link
-          to="/"
-          onClick={closeMenu}
-          className="flex items-center gap-2"
-        >
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white">
-            <GraduationCap size={25} />
-          </div>
+    const handleLogout = () => {
+        logout();
+        closeMenu();
+        navigate("/");
+    };
 
-          <span className="text-2xl font-bold tracking-tight text-gray-900">
-            Learn<span className="text-blue-600">Sphere</span>
-          </span>
-        </Link>
+    return (
+        <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur-md">
+            <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
 
-        {/* Desktop Navigation */}
-        <div className="hidden items-center gap-8 md:flex">
-          {navLinks.map((link) => (
-            <NavLink
-              key={link.name}
-              to={link.path}
-              className={({ isActive }) =>
-                `text-sm font-medium transition-colors duration-200 ${
-                  isActive
-                    ? "text-blue-600"
-                    : "text-gray-600 hover:text-blue-600"
-                }`
-              }
-            >
-              {link.name}
-            </NavLink>
-          ))}
-        </div>
+                {/* Logo */}
+                <Link
+                    to="/"
+                    onClick={closeMenu}
+                    className="flex items-center gap-2"
+                >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white">
+                        <GraduationCap size={25} />
+                    </div>
 
-        {/* Desktop Auth Buttons */}
-        <div className="hidden items-center gap-3 md:flex">
-          <Link
-            to="/login"
-            className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
-          >
-            <LogIn size={17} />
-            Login
-          </Link>
+                    <span className="text-2xl font-bold tracking-tight text-gray-900">
+                        Learn<span className="text-blue-600">Sphere</span>
+                    </span>
+                </Link>
 
-          <Link
-            to="/register"
-            className="flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
-          >
-            <UserPlus size={17} />
-            Sign Up
-          </Link>
-        </div>
+                {/* Desktop Navigation */}
+                <div className="hidden items-center gap-8 md:flex">
+                    {navLinks.map((link) => (
+                        <NavLink
+                            key={link.name}
+                            to={link.path}
+                            className={({ isActive }) =>
+                                `text-sm font-medium transition-colors duration-200 ${isActive
+                                    ? "text-blue-600"
+                                    : "text-gray-600 hover:text-blue-600"
+                                }`
+                            }
+                        >
+                            {link.name}
+                        </NavLink>
+                    ))}
+                </div>
 
-        {/* Mobile Menu Button */}
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="rounded-lg p-2 text-gray-700 transition hover:bg-gray-100 md:hidden"
-          aria-label={isOpen ? "Close menu" : "Open menu"}
-          aria-expanded={isOpen}
-        >
-          {isOpen ? <X size={25} /> : <Menu size={25} />}
-        </button>
-      </nav>
+                {/* Desktop Auth Buttons */}
+                <div className="hidden items-center gap-3 md:flex">
+                    {!loading && (
+                        user ? (
+                            <>
+                                <span className="text-sm font-semibold text-gray-700">
+                                    Hi, {user.name}
+                                </span>
 
-      {/* Mobile Navigation */}
-      {isOpen && (
-        <div className="border-t border-gray-200 bg-white px-5 py-5 md:hidden">
-          <div className="flex flex-col gap-4">
-            {navLinks.map((link) => (
-              <NavLink
-                key={link.name}
-                to={link.path}
-                onClick={closeMenu}
-                className={({ isActive }) =>
-                  `text-sm font-medium transition ${
-                    isActive
-                      ? "text-blue-600"
-                      : "text-gray-700 hover:text-blue-600"
-                  }`
-                }
-              >
-                {link.name}
-              </NavLink>
-            ))}
+                                <button
+                                    onClick={handleLogout}
+                                    className="flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
+                                >
+                                    <LogOut size={17} />
+                                    Logout
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <Link
+                                    to="/login"
+                                    className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
+                                >
+                                    <LogIn size={17} />
+                                    Login
+                                </Link>
 
-            <div className="my-1 border-t border-gray-200" />
+                                <Link
+                                    to="/register"
+                                    className="flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+                                >
+                                    <UserPlus size={17} />
+                                    Sign Up
+                                </Link>
+                            </>
+                        )
+                    )}
+                </div>
 
-            <Link
-              to="/login"
-              onClick={closeMenu}
-              className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100"
-            >
-              <LogIn size={17} />
-              Login
-            </Link>
+                {/* Mobile Menu Button */}
+                <button
+                    onClick={() => setIsOpen(!isOpen)}
+                    className="rounded-lg p-2 text-gray-700 transition hover:bg-gray-100 md:hidden"
+                    aria-label={isOpen ? "Close menu" : "Open menu"}
+                    aria-expanded={isOpen}
+                >
+                    {isOpen ? <X size={25} /> : <Menu size={25} />}
+                </button>
+            </nav>
 
-            <Link
-              to="/register"
-              onClick={closeMenu}
-              className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700"
-            >
-              <UserPlus size={17} />
-              Sign Up
-            </Link>
-          </div>
-        </div>
-      )}
-    </header>
-  );
+            {/* Mobile Navigation */}
+            {isOpen && (
+                <div className="border-t border-gray-200 bg-white px-5 py-5 md:hidden">
+                    <div className="flex flex-col gap-4">
+                        {navLinks.map((link) => (
+                            <NavLink
+                                key={link.name}
+                                to={link.path}
+                                onClick={closeMenu}
+                                className={({ isActive }) =>
+                                    `text-sm font-medium transition ${isActive
+                                        ? "text-blue-600"
+                                        : "text-gray-700 hover:text-blue-600"
+                                    }`
+                                }
+                            >
+                                {link.name}
+                            </NavLink>
+                        ))}
+
+                        <div className="my-1 border-t border-gray-200" />
+
+                        {!loading && (
+                            user ? (
+                                <>
+                                    <span className="px-3 text-sm font-semibold text-gray-700">
+                                        Hi, {user.name}
+                                    </span>
+
+                                    <button
+                                        onClick={handleLogout}
+                                        className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100"
+                                    >
+                                        <LogOut size={17} />
+                                        Logout
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <Link
+                                        to="/login"
+                                        onClick={closeMenu}
+                                        className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100"
+                                    >
+                                        <LogIn size={17} />
+                                        Login
+                                    </Link>
+
+                                    <Link
+                                        to="/register"
+                                        onClick={closeMenu}
+                                        className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700"
+                                    >
+                                        <UserPlus size={17} />
+                                        Sign Up
+                                    </Link>
+                                </>
+                            )
+                        )}
+                    </div>
+                </div>
+            )}
+        </header>
+    );
 }
 
 export default Navbar;
