@@ -10,6 +10,7 @@ import CourseDetails from "./pages/CourseDetails";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
+import Categories from "./pages/Categories";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="/courses/:id" element={<CourseDetails />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/categories" element={<Categories />} />
 
           {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>

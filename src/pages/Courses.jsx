@@ -1,4 +1,6 @@
+
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import Navbar from "../components/Navbar";
 import CourseCard from "../components/CourseCard";
@@ -8,6 +10,9 @@ function Courses() {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const [searchParams] = useSearchParams();
+  const categoryId = searchParams.get("categoryId");
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -25,6 +30,13 @@ function Courses() {
 
     fetchCourses();
   }, []);
+
+  // Filter courses by category
+  const filteredCourses = categoryId
+    ? courses.filter(
+        (course) => String(course.categoryId) === categoryId
+      )
+    : courses;
 
   return (
     <>
@@ -64,21 +76,23 @@ function Courses() {
           )}
 
           {/* Empty State */}
-          {!loading && !error && courses.length === 0 && (
+          {!loading && !error && filteredCourses.length === 0 && (
             <p className="text-center text-gray-500">
-              No courses available at the moment.
+              {categoryId
+                ? "No courses available in this category."
+                : "No courses available at the moment."}
             </p>
           )}
 
           {/* Course Grid */}
-          {!loading && !error && courses.length > 0 && (
+          {!loading && !error && filteredCourses.length > 0 && (
             <>
               <p className="mb-6 text-sm text-gray-500">
-                Showing {courses.length} courses
+                Showing {filteredCourses.length} courses
               </p>
 
               <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-                {courses.map((course) => (
+                {filteredCourses.map((course) => (
                   <CourseCard key={course.id} course={course} />
                 ))}
               </div>

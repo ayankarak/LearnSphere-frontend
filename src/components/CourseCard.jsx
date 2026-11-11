@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { BookOpen, UserRound } from "lucide-react";
 
@@ -13,8 +14,9 @@ function CourseCard({ course }) {
       {/* Course Details */}
       <div className="p-5">
 
+        {/* Category Name */}
         <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
-          Online Course
+          {course.category?.name || "Uncategorized"}
         </span>
 
         <h3 className="mt-4 text-xl font-bold text-gray-900">
