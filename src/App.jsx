@@ -13,6 +13,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Categories from "./pages/Categories";
 import MyCourses from "./pages/MyCourses";
+import CourseLearning from "./pages/CourseLearning";
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/my-courses" element={<MyCourses />} />
+            <Route path="/learn/:courseId" element={<CourseLearning />} />
           </Route>
         </Routes>
       </BrowserRouter>

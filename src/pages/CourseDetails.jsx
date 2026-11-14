@@ -1,13 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import {
-  BookOpen,
-  Clock,
-  UserRound,
-  PlayCircle,
-  ArrowLeft,
-} from "lucide-react";
+import { BookOpen, Clock,UserRound, PlayCircle, ArrowLeft, Lock } from "lucide-react";
 
 import Navbar from "../components/Navbar";
 import api from "../api/axios";
@@ -36,7 +30,6 @@ function CourseDetails() {
         setError("");
 
         const response = await api.get(`/courses/${id}`);
-
         setCourse(response.data.course);
       } catch (error) {
         setError(
@@ -103,6 +96,21 @@ function CourseDetails() {
     } finally {
       setEnrolling(false);
     }
+  };
+
+  // OPEN SELECTED LESSON
+  const handleLessonClick = (lesson) => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    if (!isEnrolled && !lesson.isPreview) {
+      setEnrollError("Please enroll in this course to access this lesson.");
+      return;
+    }
+
+    navigate(`/learn/${id}?lessonId=${lesson.id}`);
   };
 
   return (
@@ -176,43 +184,61 @@ function CourseDetails() {
                     </p>
                   ) : (
                     <div className="space-y-4">
-                      {course.lessons.map((lesson, index) => (
-                        <div
-                          key={lesson.id}
-                          className="flex items-center justify-between gap-4 rounded-xl border border-gray-100 p-4"
-                        >
-                          <div className="flex items-center gap-4">
-                            <div className="rounded-lg bg-blue-100 p-3 text-blue-600">
-                              <PlayCircle size={22} />
+                      {course.lessons.map((lesson, index) => {
+                        const canAccess = isEnrolled || lesson.isPreview;
+
+                        return (
+                          <button
+                            key={lesson.id}
+                            type="button"
+                            onClick={() => handleLessonClick(lesson)}
+                            className={`flex w-full items-center justify-between gap-4 rounded-xl border p-4 text-left transition ${
+                              canAccess
+                                ? "border-gray-100 hover:border-blue-300 hover:bg-blue-50"
+                                : "cursor-not-allowed border-gray-100 bg-gray-50"
+                            }`}
+                          >
+                            <div className="flex min-w-0 items-center gap-4">
+                              <div className="shrink-0 rounded-lg bg-blue-100 p-3 text-blue-600">
+                                {canAccess ? (
+                                  <PlayCircle size={22} />
+                                ) : (
+                                  <Lock size={22} />
+                                )}
+                              </div>
+
+                              <div className="min-w-0">
+                                <h3 className="font-semibold text-gray-900">
+                                  {index + 1}. {lesson.title}
+                                </h3>
+
+                                <p className="mt-1 text-sm text-gray-500">
+                                  {lesson.description || "Course lesson"}
+                                </p>
+                              </div>
                             </div>
 
-                            <div>
-                              <h3 className="font-semibold text-gray-900">
-                                {index + 1}. {lesson.title}
-                              </h3>
-
-                              <p className="mt-1 text-sm text-gray-500">
-                                {lesson.description || "Course lesson"}
+                            <div className="shrink-0 text-right">
+                              <p className="flex items-center gap-1 text-sm text-gray-500">
+                                <Clock size={14} />
+                                {lesson.duration
+                                  ? `${lesson.duration} min`
+                                  : "N/A"}
                               </p>
+
+                              {lesson.isPreview ? (
+                                <span className="mt-2 inline-block rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-700">
+                                  Preview
+                                </span>
+                              ) : !isEnrolled ? (
+                                <span className="mt-2 inline-block rounded-full bg-gray-200 px-2 py-1 text-xs font-semibold text-gray-600">
+                                  Locked
+                                </span>
+                              ) : null}
                             </div>
-                          </div>
-
-                          <div className="shrink-0 text-right">
-                            <p className="flex items-center gap-1 text-sm text-gray-500">
-                              <Clock size={14} />
-                              {lesson.duration
-                                ? `${lesson.duration} min`
-                                : "N/A"}
-                            </p>
-
-                            {lesson.isPreview && (
-                              <span className="mt-2 inline-block rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-700">
-                                Preview
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -246,7 +272,6 @@ function CourseDetails() {
                     {course.lessons?.length || 0} Lessons
                   </p>
 
-                  {/* ENROLLMENT MESSAGES */}
                   {enrollError && (
                     <p className="mt-4 text-sm text-red-600">
                       {enrollError}
@@ -259,19 +284,14 @@ function CourseDetails() {
                     </p>
                   )}
 
-                  {/* ENROLL BUTTON */}
                   <button
-                    onClick={
+                    onClick={handleEnroll}
+                    disabled={enrolling || authLoading || isEnrolled}
+                    className={`mt-8 w-full rounded-lg px-5 py-3 font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-70 ${
                       isEnrolled
-                        ? () => navigate("/dashboard")
-                        : handleEnroll
-                    }
-                    disabled={enrolling || authLoading}
-                    className={`mt-8 w-full rounded-lg px-5 py-3 font-semibold text-white transition ${
-                      isEnrolled
-                        ? "bg-green-600 hover:bg-green-700"
+                        ? "bg-green-600"
                         : "bg-blue-600 hover:bg-blue-700"
-                    } disabled:cursor-not-allowed disabled:opacity-60`}
+                    }`}
                   >
                     {enrolling
                       ? "Enrolling..."
@@ -279,6 +299,12 @@ function CourseDetails() {
                         ? "Already Enrolled"
                         : "Enroll Now"}
                   </button>
+
+                  {isEnrolled && (
+                    <p className="mt-3 text-center text-sm text-green-600">
+                      Select any lesson to start learning.
+                    </p>
+                  )}
 
                 </div>
               </div>

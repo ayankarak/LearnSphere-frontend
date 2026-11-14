@@ -140,7 +140,7 @@ function MyCourses() {
                                                         to={`/courses/${course.id}`}
                                                         className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-700"
                                                     >
-                                                        View Course
+                                                        Continue Learning
                                                         <ArrowRight size={18} />
                                                     </Link>
                                                 </div>
