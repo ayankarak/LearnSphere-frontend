@@ -1,17 +1,34 @@
+
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { BookOpen, Clock, UserRound, PlayCircle, ArrowLeft } from "lucide-react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import {
+  BookOpen,
+  Clock,
+  UserRound,
+  PlayCircle,
+  ArrowLeft,
+} from "lucide-react";
 
 import Navbar from "../components/Navbar";
 import api from "../api/axios";
+import { useAuth } from "../context/AuthContext";
 
 function CourseDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
+
+  const { user, loading: authLoading } = useAuth();
 
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [isEnrolled, setIsEnrolled] = useState(false);
+  const [enrolling, setEnrolling] = useState(false);
+  const [enrollError, setEnrollError] = useState("");
+  const [enrollSuccess, setEnrollSuccess] = useState("");
+
+  // FETCH COURSE DETAILS
   useEffect(() => {
     const fetchCourse = async () => {
       try {
@@ -23,7 +40,8 @@ function CourseDetails() {
         setCourse(response.data.course);
       } catch (error) {
         setError(
-          error.response?.data?.message || "Failed to fetch course details."
+          error.response?.data?.message ||
+            "Failed to fetch course details."
         );
       } finally {
         setLoading(false);
@@ -32,6 +50,60 @@ function CourseDetails() {
 
     fetchCourse();
   }, [id]);
+
+  // CHECK ENROLLMENT STATUS
+  useEffect(() => {
+    const checkEnrollment = async () => {
+      if (authLoading) return;
+
+      if (!user) {
+        setIsEnrolled(false);
+        return;
+      }
+
+      try {
+        const response = await api.get("/enrollments/my-courses");
+
+        const enrollments = response.data.enrollments || [];
+
+        const enrolled = enrollments.some(
+          (item) => Number(item.courseId) === Number(id)
+        );
+
+        setIsEnrolled(enrolled);
+      } catch (error) {
+        console.error("Enrollment check failed:", error);
+      }
+    };
+
+    checkEnrollment();
+  }, [id, user, authLoading]);
+
+  // ENROLL IN COURSE
+  const handleEnroll = async () => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      setEnrolling(true);
+      setEnrollError("");
+      setEnrollSuccess("");
+
+      await api.post(`/enrollments/course/${id}`);
+
+      setIsEnrolled(true);
+      setEnrollSuccess("Successfully enrolled in this course!");
+    } catch (error) {
+      setEnrollError(
+        error.response?.data?.message ||
+          "Failed to enroll in this course."
+      );
+    } finally {
+      setEnrolling(false);
+    }
+  };
 
   return (
     <>
@@ -63,7 +135,7 @@ function CourseDetails() {
           {!loading && !error && course && (
             <div className="grid gap-10 lg:grid-cols-3">
 
-              {/* Course Information */}
+              {/* COURSE INFORMATION */}
               <div className="space-y-8 lg:col-span-2">
 
                 <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 p-8 text-white">
@@ -92,7 +164,7 @@ function CourseDetails() {
                   </div>
                 </div>
 
-                {/* Lessons */}
+                {/* LESSONS */}
                 <div className="rounded-2xl border border-gray-200 bg-white p-6">
                   <h2 className="mb-6 text-2xl font-bold text-gray-900">
                     Course Content
@@ -146,9 +218,10 @@ function CourseDetails() {
                 </div>
               </div>
 
-              {/* Price Card */}
+              {/* PRICE CARD */}
               <div>
                 <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm lg:sticky lg:top-8">
+
                   <div className="flex h-40 items-center justify-center rounded-xl bg-gradient-to-br from-blue-100 to-indigo-200">
                     <BookOpen size={65} className="text-blue-600" />
                   </div>
@@ -173,12 +246,40 @@ function CourseDetails() {
                     {course.lessons?.length || 0} Lessons
                   </p>
 
+                  {/* ENROLLMENT MESSAGES */}
+                  {enrollError && (
+                    <p className="mt-4 text-sm text-red-600">
+                      {enrollError}
+                    </p>
+                  )}
+
+                  {enrollSuccess && (
+                    <p className="mt-4 text-sm text-green-600">
+                      {enrollSuccess}
+                    </p>
+                  )}
+
+                  {/* ENROLL BUTTON */}
                   <button
-                    disabled
-                    className="mt-8 w-full cursor-not-allowed rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white opacity-60"
+                    onClick={
+                      isEnrolled
+                        ? () => navigate("/dashboard")
+                        : handleEnroll
+                    }
+                    disabled={enrolling || authLoading}
+                    className={`mt-8 w-full rounded-lg px-5 py-3 font-semibold text-white transition ${
+                      isEnrolled
+                        ? "bg-green-600 hover:bg-green-700"
+                        : "bg-blue-600 hover:bg-blue-700"
+                    } disabled:cursor-not-allowed disabled:opacity-60`}
                   >
-                    Enroll Now (Coming Soon)
+                    {enrolling
+                      ? "Enrolling..."
+                      : isEnrolled
+                        ? "Already Enrolled"
+                        : "Enroll Now"}
                   </button>
+
                 </div>
               </div>
 

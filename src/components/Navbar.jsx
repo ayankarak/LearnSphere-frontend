@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import {GraduationCap,Menu,X,LogIn,UserPlus,LogOut} from "lucide-react";
+import { GraduationCap, Menu, X, LogIn, UserPlus, LogOut } from "lucide-react";
 
 import { useAuth } from "../context/AuthContext";
 
@@ -11,12 +11,19 @@ function Navbar() {
     const { user, logout, loading } = useAuth();
     const navigate = useNavigate();
 
+
     const navLinks = [
         { name: "Home", path: "/" },
         { name: "Explore Courses", path: "/courses" },
         { name: "Categories", path: "/categories" },
-        ...(user ? [{ name: "Dashboard", path: "/dashboard" }] : []),
+        ...(user
+            ? [
+                { name: "Dashboard", path: "/dashboard" },
+                { name: "My Courses", path: "/my-courses" },
+            ]
+            : []),
     ];
+
 
     const closeMenu = () => setIsOpen(false);
 

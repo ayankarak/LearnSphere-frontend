@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import {ArrowRight,BookOpen,GraduationCap,PlayCircle,Users} from "lucide-react";
+import { ArrowRight, BookOpen, GraduationCap, PlayCircle, Users } from "lucide-react";
 
 function Hero() {
   return (
@@ -36,13 +36,22 @@ function Hero() {
             </Link>
 
             <Link
-              to="/register"
+              to="/categories"
               className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-3.5 font-semibold text-gray-700 transition hover:border-blue-600 hover:text-blue-600"
             >
               <PlayCircle size={19} />
               Get Started
             </Link>
+
+            <Link
+              to="/my-courses"
+              className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-6 py-3.5 font-semibold text-blue-700 transition hover:bg-blue-100"
+            >
+              <BookOpen size={19} />
+              My Courses
+            </Link>
           </div>
+
 
           {/* Statistics */}
           <div className="mt-12 flex flex-wrap gap-8">
