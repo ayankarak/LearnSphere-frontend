@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { BookOpen, Clock,UserRound, PlayCircle, ArrowLeft, Lock } from "lucide-react";
+import { BookOpen, Clock, UserRound, PlayCircle, ArrowLeft,Lock,CheckCircle2, TrendingUp} from "lucide-react";
 
 import Navbar from "../components/Navbar";
 import api from "../api/axios";
@@ -21,6 +21,14 @@ function CourseDetails() {
   const [enrolling, setEnrolling] = useState(false);
   const [enrollError, setEnrollError] = useState("");
   const [enrollSuccess, setEnrollSuccess] = useState("");
+
+  // COURSE PROGRESS
+  const [progress, setProgress] = useState({
+    totalLessons: 0,
+    completedLessons: 0,
+    percentage: 0,
+  });
+  const [progressLoading, setProgressLoading] = useState(false);
 
   // FETCH COURSE DETAILS
   useEffect(() => {
@@ -71,6 +79,34 @@ function CourseDetails() {
 
     checkEnrollment();
   }, [id, user, authLoading]);
+
+  // FETCH COURSE PROGRESS
+  useEffect(() => {
+    const fetchProgress = async () => {
+      if (!isEnrolled) {
+        setProgress({
+          totalLessons: 0,
+          completedLessons: 0,
+          percentage: 0,
+        });
+        return;
+      }
+
+      try {
+        setProgressLoading(true);
+
+        const response = await api.get(`/progress/course/${id}`);
+
+        setProgress(response.data.progress);
+      } catch (error) {
+        console.error("Failed to fetch course progress:", error);
+      } finally {
+        setProgressLoading(false);
+      }
+    };
+
+    fetchProgress();
+  }, [id, isEnrolled]);
 
   // ENROLL IN COURSE
   const handleEnroll = async () => {
@@ -244,9 +280,11 @@ function CourseDetails() {
                 </div>
               </div>
 
-              {/* PRICE CARD */}
-              <div>
-                <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm lg:sticky lg:top-8">
+              {/* RIGHT SIDE CARDS */}
+              <div className="self-start space-y-6 lg:sticky lg:top-8">
+
+                {/* PRICE CARD */}
+                <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
 
                   <div className="flex h-40 items-center justify-center rounded-xl bg-gradient-to-br from-blue-100 to-indigo-200">
                     <BookOpen size={65} className="text-blue-600" />
@@ -305,8 +343,74 @@ function CourseDetails() {
                       Select any lesson to start learning.
                     </p>
                   )}
-
                 </div>
+
+                {/* COURSE PROGRESS CARD */}
+                {isEnrolled && (
+                  <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-bold text-gray-900">
+                        Your Progress
+                      </h3>
+
+                      <div className="rounded-lg bg-blue-100 p-2 text-blue-600">
+                        <TrendingUp size={20} />
+                      </div>
+                    </div>
+
+                    {progressLoading ? (
+                      <p className="mt-5 text-sm text-gray-500">
+                        Loading your progress...
+                      </p>
+                    ) : (
+                      <>
+                        <div className="mt-6 flex items-center justify-between">
+                          <p className="text-sm text-gray-500">
+                            Course Completion
+                          </p>
+
+                          <span className="text-xl font-bold text-blue-600">
+                            {progress.percentage}%
+                          </span>
+                        </div>
+
+                        <div className="mt-3 h-3 overflow-hidden rounded-full bg-gray-100">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-500"
+                            style={{
+                              width: `${progress.percentage}%`,
+                            }}
+                          />
+                        </div>
+
+                        <div className="mt-5 flex items-center justify-between text-sm">
+                          <span className="text-gray-500">
+                            Lessons Completed
+                          </span>
+
+                          <span className="font-semibold text-gray-900">
+                            {progress.completedLessons} / {progress.totalLessons}
+                          </span>
+                        </div>
+
+                        {progress.percentage === 100 && (
+                          <div className="mt-5 flex items-center gap-2 rounded-lg bg-green-50 p-3 text-sm font-medium text-green-700">
+                            <CheckCircle2 size={19} />
+                            Congratulations! Course Completed.
+                          </div>
+                        )}
+
+                        {progress.percentage < 100 && (
+                          <p className="mt-5 text-sm text-gray-500">
+                            Keep learning and complete all lessons!
+                          </p>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
+
               </div>
 
             </div>

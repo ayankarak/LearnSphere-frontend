@@ -14,8 +14,7 @@ import {
     Clock,
     PlayCircle,
     UserRound,
-    FileText,
-    Video,
+    Check,
 } from "lucide-react";
 
 import Navbar from "../components/Navbar";
@@ -35,6 +34,17 @@ function CourseLearning() {
     const [error, setError] = useState("");
 
     const [activeTab, setActiveTab] = useState("Overview");
+
+    // PROGRESS STATES
+    const [completedLessons, setCompletedLessons] = useState([]);
+    const [progress, setProgress] = useState({
+        totalLessons: 0,
+        completedLessons: 0,
+        percentage: 0,
+    });
+
+    const [completing, setCompleting] = useState(false);
+    const [progressError, setProgressError] = useState("");
 
     // FETCH COURSE
     useEffect(() => {
@@ -64,6 +74,34 @@ function CourseLearning() {
         (a, b) => a.position - b.position
     );
 
+    // FETCH COURSE PROGRESS
+    const fetchProgress = async () => {
+        try {
+            const [progressResponse, completedResponse] =
+                await Promise.all([
+                    api.get(`/progress/course/${courseId}`),
+                    api.get(
+                        `/progress/course/${courseId}/completed-lessons`
+                    ),
+                ]);
+
+            setProgress(progressResponse.data.progress);
+
+            const completedIds =
+                completedResponse.data.completedLessons.map(
+                    (item) => Number(item.lessonId)
+                );
+
+            setCompletedLessons(completedIds);
+        } catch (error) {
+            console.error("Failed to fetch progress:", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchProgress();
+    }, [courseId]);
+
     // SELECT LESSON FROM URL
     useEffect(() => {
         if (!course || lessons.length === 0) return;
@@ -88,6 +126,34 @@ function CourseLearning() {
     const activeLesson = lessons.find(
         (lesson) => Number(lesson.id) === Number(activeLessonId)
     );
+
+    const isCurrentLessonCompleted = completedLessons.includes(
+        Number(activeLessonId)
+    );
+
+    // MARK LESSON AS COMPLETED
+    const handleCompleteLesson = async () => {
+        if (!activeLesson || completing) return;
+
+        try {
+            setCompleting(true);
+            setProgressError("");
+
+            await api.patch(
+                `/progress/lesson/${activeLesson.id}/complete`
+            );
+
+            await fetchProgress();
+
+        } catch (error) {
+            setProgressError(
+                error.response?.data?.message ||
+                "Failed to update lesson progress."
+            );
+        } finally {
+            setCompleting(false);
+        }
+    };
 
     // CONVERT YOUTUBE URL TO EMBED URL
     const getYoutubeEmbedUrl = (url) => {
@@ -134,6 +200,7 @@ function CourseLearning() {
         });
 
         setActiveTab("Overview");
+        setProgressError("");
     };
 
     const currentIndex = lessons.findIndex(
@@ -276,6 +343,35 @@ function CourseLearning() {
 
                                         </div>
 
+                                        {/* MARK AS COMPLETE */}
+                                        <div className="mt-6">
+
+                                            {isCurrentLessonCompleted ? (
+                                                <div className="flex items-center gap-2 rounded-xl bg-green-50 px-4 py-3 font-semibold text-green-700">
+                                                    <CheckCircle size={20} />
+                                                    Lesson Completed
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    onClick={handleCompleteLesson}
+                                                    disabled={completing}
+                                                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 px-5 py-3 font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                                                >
+                                                    <Check size={19} />
+                                                    {completing
+                                                        ? "Updating Progress..."
+                                                        : "Mark as Complete"}
+                                                </button>
+                                            )}
+
+                                            {progressError && (
+                                                <p className="mt-3 text-sm text-red-500">
+                                                    {progressError}
+                                                </p>
+                                            )}
+
+                                        </div>
+
                                         {/* PREVIOUS / NEXT */}
                                         <div className="mt-7 flex items-center justify-between border-t border-gray-100 pt-5">
 
@@ -372,23 +468,25 @@ function CourseLearning() {
                                         {lessons.length} lessons in this course
                                     </p>
 
-                                    {/* PROGRESS */}
+                                    {/* REAL PROGRESS */}
                                     <div className="mt-5 h-2 overflow-hidden rounded-full bg-gray-100">
                                         <div
-                                            className="h-full rounded-full bg-blue-600 transition-all"
+                                            className="h-full rounded-full bg-green-600 transition-all duration-500"
                                             style={{
-                                                width: `${
-                                                    lessons.length
-                                                        ? ((currentIndex + 1) / lessons.length) * 100
-                                                        : 0
-                                                }%`,
+                                                width: `${progress.percentage}%`,
                                             }}
                                         />
                                     </div>
 
-                                    <p className="mt-2 text-xs text-gray-500">
-                                        Currently viewing {currentIndex + 1} of {lessons.length} lessons
-                                    </p>
+                                    <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
+                                        <span>
+                                            {progress.completedLessons} of {progress.totalLessons} completed
+                                        </span>
+
+                                        <span className="font-bold text-green-600">
+                                            {progress.percentage}%
+                                        </span>
+                                    </div>
 
                                     <p className="mt-2 text-xs text-gray-500">
                                         Total duration: {totalDuration} minutes
@@ -404,6 +502,9 @@ function CourseLearning() {
                                         const isActive =
                                             Number(activeLessonId) === Number(lesson.id);
 
+                                        const isCompleted =
+                                            completedLessons.includes(Number(lesson.id));
+
                                         return (
                                             <button
                                                 key={lesson.id}
@@ -417,12 +518,18 @@ function CourseLearning() {
 
                                                 <div
                                                     className={`mt-0.5 rounded-lg p-2 ${
-                                                        isActive
-                                                            ? "bg-blue-600 text-white"
-                                                            : "bg-gray-100 text-gray-500"
+                                                        isCompleted
+                                                            ? "bg-green-100 text-green-600"
+                                                            : isActive
+                                                                ? "bg-blue-600 text-white"
+                                                                : "bg-gray-100 text-gray-500"
                                                     }`}
                                                 >
-                                                    <PlayCircle size={22} />
+                                                    {isCompleted ? (
+                                                        <CheckCircle size={22} />
+                                                    ) : (
+                                                        <PlayCircle size={22} />
+                                                    )}
                                                 </div>
 
                                                 <div className="min-w-0 flex-1">
@@ -443,6 +550,12 @@ function CourseLearning() {
                                                             ? `${lesson.duration} min`
                                                             : "N/A"}
                                                     </p>
+
+                                                    {isCompleted && (
+                                                        <p className="mt-2 text-xs font-semibold text-green-600">
+                                                            Completed
+                                                        </p>
+                                                    )}
 
                                                 </div>
 
