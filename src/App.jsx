@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 
 import ProtectedRoute from "./components/ProtectedRoute";
+import ActivityTracker from "./components/ActivityTracker";
 
 import Home from "./pages/Home";
 import Courses from "./pages/Courses";
@@ -19,6 +20,10 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+
+        {/* GLOBAL USER ACTIVITY TRACKING */}
+        <ActivityTracker />
+
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Home />} />
@@ -32,9 +37,13 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/my-courses" element={<MyCourses />} />
-            <Route path="/learn/:courseId" element={<CourseLearning />} />
+            <Route
+              path="/learn/:courseId"
+              element={<CourseLearning />}
+            />
           </Route>
         </Routes>
+
       </BrowserRouter>
     </AuthProvider>
   );

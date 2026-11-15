@@ -1,18 +1,8 @@
 
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-    ArrowRight,
-    BookOpen,
-    CheckCircle2,
-    Clock3,
-    GraduationCap,
-    Library,
-    Mail,
-    ShieldCheck,
-    TrendingUp,
-    UserRound,
-} from "lucide-react";
+import { ArrowRight, BookOpen, CheckCircle2,
+    Clock3, GraduationCap, Library, Mail, ShieldCheck, TrendingUp, UserRound } from "lucide-react";
 
 import Navbar from "../components/Navbar";
 import api from "../api/axios";
@@ -24,8 +14,11 @@ function Dashboard() {
     const [enrollments, setEnrollments] = useState([]);
     const [progressData, setProgressData] = useState({});
     const [completedActivity, setCompletedActivity] = useState([]);
+    const [weeklyActivity, setWeeklyActivity] = useState([]);
+
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [activityError, setActivityError] = useState("");
 
     // FETCH DASHBOARD DATA
     useEffect(() => {
@@ -39,6 +32,27 @@ function Dashboard() {
 
                 setEnrollments(enrolledCourses);
 
+                // FETCH WEEKLY ACTIVE TIME
+                try {
+                    const activityResponse = await api.get("/activity/weekly");
+
+                    setWeeklyActivity(
+                        activityResponse.data.activities || []
+                    );
+
+                    setActivityError("");
+                } catch (err) {
+                    console.error("Weekly activity fetch failed:", err);
+
+                    setWeeklyActivity([]);
+
+                    setActivityError(
+                        err.response?.data?.message ||
+                        "Failed to load weekly activity."
+                    );
+                }
+
+                // FETCH COURSE PROGRESS
                 const results = await Promise.all(
                     enrolledCourses.map(async (enrollment) => {
                         const courseId =
@@ -135,9 +149,10 @@ function Dashboard() {
         (item) => item.totalLessons > 0 && item.percentage === 100
     ).length;
 
-    const overallProgress = totalLessons > 0
-        ? Math.round((completedLessons / totalLessons) * 100)
-        : 0;
+    const overallProgress =
+        totalLessons > 0
+            ? Math.round((completedLessons / totalLessons) * 100)
+            : 0;
 
     // INITIALS
     const getInitials = (name) => {
@@ -151,7 +166,8 @@ function Dashboard() {
             .toUpperCase();
     };
 
-    // LAST 7 DAYS ACTIVITY
+    // LAST 7 DAYS COMPLETED LESSON ACTIVITY
+    // This data is still used by the Learning Performance graph.
     const activityData = [];
 
     for (let i = 6; i >= 0; i--) {
@@ -202,11 +218,6 @@ function Dashboard() {
         };
     });
 
-    const maxActivity = Math.max(
-        ...activityData.map((day) => day.completed),
-        1
-    );
-
     const maxPerformance = Math.max(
         ...performanceData.map((day) => day.total),
         1
@@ -221,10 +232,63 @@ function Dashboard() {
         })
         .join(" ");
 
-    const weeklyCompleted = activityData.reduce(
-        (sum, day) => sum + day.completed,
+    // WEEKLY ACTIVE TIME DATA
+    const activeTimeData = [];
+
+    for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setHours(0, 0, 0, 0);
+        date.setDate(date.getDate() - i);
+
+        const dateKey = [
+            date.getFullYear(),
+            String(date.getMonth() + 1).padStart(2, "0"),
+            String(date.getDate()).padStart(2, "0"),
+        ].join("-");
+
+        const activity = weeklyActivity.find(
+            (item) => item.activityDate === dateKey
+        );
+
+        const activeSeconds = Number(activity?.activeSeconds || 0);
+
+        activeTimeData.push({
+            date: dateKey,
+            label: date.toLocaleDateString("en-US", {
+                weekday: "short",
+            }),
+            activeSeconds,
+            activeMinutes: Math.round(activeSeconds / 60),
+        });
+    }
+
+    const weeklyActiveSeconds = activeTimeData.reduce(
+        (sum, day) => sum + day.activeSeconds,
         0
     );
+
+    const averageActiveSeconds = Math.round(
+        weeklyActiveSeconds / 7
+    );
+
+    const maxActiveMinutes = Math.max(
+        ...activeTimeData.map((day) => day.activeMinutes),
+        1
+    );
+
+    // FORMAT ACTIVE TIME
+    const formatActiveTime = (seconds) => {
+        const totalMinutes = Math.floor(seconds / 60);
+
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+
+        if (hours > 0) {
+            return `${hours}h ${minutes}m`;
+        }
+
+        return `${minutes}m`;
+    };
 
     return (
         <div className="min-h-screen bg-[#f5f7fb]">
@@ -429,75 +493,109 @@ function Dashboard() {
                         {/* ACTIVITY AND PERFORMANCE */}
                         <div className="grid gap-6 lg:grid-cols-2">
 
-                            {/* DAILY ACTIVITY */}
+                            {/* WEEKLY ACTIVE TIME */}
                             <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
 
                                 <div className="flex items-start justify-between">
                                     <div>
                                         <h2 className="text-lg font-bold text-gray-900">
-                                            Daily Learning Activity
+                                            Weekly Active Time
                                         </h2>
 
                                         <p className="mt-1 text-sm text-gray-500">
-                                            Last 7 days
+                                            Your daily learning activity
                                         </p>
                                     </div>
 
                                     <div className="rounded-xl bg-blue-50 p-3 text-blue-600">
-                                        <BookOpen size={21} />
+                                        <Clock3 size={21} />
                                     </div>
                                 </div>
 
-                                <div className="mt-6">
-                                    <h3 className="text-3xl font-bold text-gray-900">
-                                        {loading ? "—" : weeklyCompleted}
-                                    </h3>
+                                {/* ACTIVE TIME SUMMARY */}
+                                <div className="mt-6 grid grid-cols-2 gap-4">
 
-                                    <p className="mt-1 text-xs text-gray-500">
-                                        Lessons completed this week
-                                    </p>
+                                    <div>
+                                        <h3 className="text-3xl font-bold text-gray-900">
+                                            {loading ? "—" : formatActiveTime(weeklyActiveSeconds)}
+                                        </h3>
+
+                                        <p className="mt-1 text-xs text-gray-500">
+                                            Total active time
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <h3 className="text-3xl font-bold text-gray-900">
+                                            {loading ? "—" : formatActiveTime(averageActiveSeconds)}
+                                        </h3>
+
+                                        <p className="mt-1 text-xs text-gray-500">
+                                            Daily average
+                                        </p>
+                                    </div>
                                 </div>
 
+                                {activityError && (
+                                    <p className="mt-4 text-xs text-red-500">
+                                        {activityError}
+                                    </p>
+                                )}
+
+                                {/* ACTIVE TIME CHART */}
                                 {loading ? (
                                     <p className="py-12 text-center text-sm text-gray-500">
                                         Loading activity...
                                     </p>
                                 ) : (
                                     <div className="mt-7 flex h-44 items-end justify-between gap-2 border-b border-gray-100 pb-2">
-                                        {activityData.map((day) => (
-                                            <div
-                                                key={day.date}
-                                                className="flex h-full flex-1 flex-col items-center justify-end gap-2"
-                                            >
-                                                <span className="text-xs font-semibold text-gray-600">
-                                                    {day.completed}
-                                                </span>
 
-                                                <div className="flex h-32 w-full items-end justify-center">
-                                                    <div
-                                                        title={`${day.date}: ${day.completed} lessons`}
-                                                        className="w-full max-w-10 rounded-t-lg bg-gradient-to-t from-blue-600 to-indigo-400 transition-all duration-500"
-                                                        style={{
-                                                            height: `${
-                                                                day.completed > 0
-                                                                    ? Math.max(
-                                                                        (day.completed / maxActivity) * 100,
-                                                                        8
-                                                                    )
-                                                                    : 3
-                                                            }%`,
-                                                            opacity: day.completed > 0 ? 1 : 0.2,
-                                                        }}
-                                                    />
+                                        {activeTimeData.map((day) => {
+                                            const barHeight =
+                                                day.activeMinutes > 0
+                                                    ? Math.max(
+                                                        (day.activeMinutes / maxActiveMinutes) * 100,
+                                                        5
+                                                    )
+                                                    : 2;
+
+                                            return (
+                                                <div
+                                                    key={day.date}
+                                                    className="flex h-full flex-1 flex-col items-center justify-end gap-2"
+                                                >
+                                                    <span className="text-[11px] font-semibold text-gray-600">
+                                                        {day.activeMinutes > 0
+                                                            ? `${day.activeMinutes}m`
+                                                            : "0m"}
+                                                    </span>
+
+                                                    <div className="flex h-32 w-full items-end justify-center">
+                                                        <div
+                                                            title={`${day.date}: ${formatActiveTime(day.activeSeconds)}`}
+                                                            className="w-full max-w-10 rounded-t-lg bg-gradient-to-t from-blue-600 to-indigo-400 transition-all duration-500"
+                                                            style={{
+                                                                height: `${barHeight}%`,
+                                                                opacity:
+                                                                    day.activeMinutes > 0
+                                                                        ? 1
+                                                                        : 0.2,
+                                                            }}
+                                                        />
+                                                    </div>
+
+                                                    <span className="text-xs font-medium text-gray-500">
+                                                        {day.label}
+                                                    </span>
                                                 </div>
-
-                                                <span className="text-xs font-medium text-gray-500">
-                                                    {day.label}
-                                                </span>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 )}
+
+                                <p className="mt-4 text-xs text-gray-400">
+                                    Active time is estimated from your activity while LearnSphere is open.
+                                </p>
                             </div>
 
                             {/* PERFORMANCE */}
@@ -578,24 +676,15 @@ function Dashboard() {
                                                 preserveAspectRatio="none"
                                             >
                                                 {[30, 70, 110, 150].map((y) => (
-                                                    <line
-                                                        key={y}
-                                                        x1="30"
-                                                        y1={y}
-                                                        x2="470"
-                                                        y2={y}
-                                                        stroke="#e5e7eb"
-                                                        strokeDasharray="4 5"
+                                                    <line key={y} x1="30"
+                                                        y1={y} x2="470" y2={y}
+                                                        stroke="#e5e7eb" strokeDasharray="4 5"
                                                     />
                                                 ))}
 
                                                 <polyline
-                                                    points={performancePoints}
-                                                    fill="none"
-                                                    stroke="#4f46e5"
-                                                    strokeWidth="4"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
+                                                    points={performancePoints} fill="none" stroke="#4f46e5"
+                                                    strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"
                                                 />
 
                                                 {performanceData.map((day, index) => {

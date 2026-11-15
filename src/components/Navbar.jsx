@@ -20,6 +20,7 @@ function Navbar() {
             ? [
                 { name: "Dashboard", path: "/dashboard" },
                 { name: "My Courses", path: "/my-courses" },
+                { name: "Goal Calendar", path: "/goal-calendar" },
             ]
             : []),
     ];

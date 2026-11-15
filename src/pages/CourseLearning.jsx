@@ -1,28 +1,13 @@
 
 import { useEffect, useState } from "react";
-import {
-    Link,
-    useParams,
-    useSearchParams,
-} from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 
-import {
-    ArrowLeft,
-    ArrowRight,
-    BookOpen,
-    CheckCircle,
-    Clock,
-    PlayCircle,
-    UserRound,
-    Check,
-} from "lucide-react";
-
+import { ArrowLeft, ArrowRight, BookOpen, CheckCircle, Clock, PlayCircle, UserRound, Check, Save, Trash2 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import api from "../api/axios";
 
 function CourseLearning() {
     const { courseId } = useParams();
-
     const [searchParams, setSearchParams] = useSearchParams();
 
     const selectedLessonId = Number(searchParams.get("lessonId"));
@@ -37,11 +22,7 @@ function CourseLearning() {
 
     // PROGRESS STATES
     const [completedLessons, setCompletedLessons] = useState([]);
-    const [progress, setProgress] = useState({
-        totalLessons: 0,
-        completedLessons: 0,
-        percentage: 0,
-    });
+    const [progress, setProgress] = useState({ totalLessons: 0, completedLessons: 0, percentage: 0 });
 
     const [completing, setCompleting] = useState(false);
     const [progressError, setProgressError] = useState("");
@@ -80,9 +61,7 @@ function CourseLearning() {
             const [progressResponse, completedResponse] =
                 await Promise.all([
                     api.get(`/progress/course/${courseId}`),
-                    api.get(
-                        `/progress/course/${courseId}/completed-lessons`
-                    ),
+                    api.get( `/progress/course/${courseId}/completed-lessons` ),
                 ]);
 
             setProgress(progressResponse.data.progress);
@@ -144,7 +123,6 @@ function CourseLearning() {
             );
 
             await fetchProgress();
-
         } catch (error) {
             setProgressError(
                 error.response?.data?.message ||
@@ -234,9 +212,7 @@ function CourseLearning() {
                 <>
                     {/* COURSE HEADER */}
                     <section className="border-b border-gray-200 bg-white px-6 py-5 md:px-12">
-
                         <div className="mx-auto max-w-7xl">
-
                             <Link
                                 to="/my-courses"
                                 className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-blue-600"
@@ -246,7 +222,6 @@ function CourseLearning() {
                             </Link>
 
                             <div className="flex flex-wrap items-center justify-between gap-4">
-
                                 <div>
                                     <h1 className="text-2xl font-bold text-gray-900">
                                         {course.title}
@@ -262,14 +237,12 @@ function CourseLearning() {
                                     <BookOpen size={19} />
                                     {lessons.length} Lessons
                                 </div>
-
                             </div>
                         </div>
                     </section>
 
                     {/* LEARNING SECTION */}
                     <section className="min-h-screen bg-gray-50 px-4 py-8 md:px-8">
-
                         <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-3">
 
                             {/* VIDEO AND LESSON DETAILS */}
@@ -277,9 +250,7 @@ function CourseLearning() {
 
                                 {/* VIDEO PLAYER */}
                                 <div className="overflow-hidden rounded-2xl bg-black shadow-lg">
-
                                     <div className="relative aspect-video">
-
                                         {videoUrl ? (
                                             <iframe
                                                 key={activeLesson?.id}
@@ -292,7 +263,6 @@ function CourseLearning() {
                                             />
                                         ) : (
                                             <div className="flex h-full flex-col items-center justify-center px-4 text-center text-white">
-
                                                 <PlayCircle
                                                     size={55}
                                                     className="mb-5 text-gray-400"
@@ -305,19 +275,15 @@ function CourseLearning() {
                                                 <p className="mt-3 text-sm text-gray-400">
                                                     No valid YouTube video URL is available for this lesson.
                                                 </p>
-
                                             </div>
                                         )}
-
                                     </div>
                                 </div>
 
                                 {/* LESSON INFORMATION */}
                                 {activeLesson && (
                                     <div className="rounded-2xl border border-gray-200 bg-white p-6">
-
                                         <div className="flex flex-wrap items-start justify-between gap-4">
-
                                             <div>
                                                 <p className="text-sm font-medium text-blue-600">
                                                     Lesson {currentIndex + 1} of {lessons.length}
@@ -340,12 +306,10 @@ function CourseLearning() {
                                                     Preview Lesson
                                                 </span>
                                             )}
-
                                         </div>
 
                                         {/* MARK AS COMPLETE */}
                                         <div className="mt-6">
-
                                             {isCurrentLessonCompleted ? (
                                                 <div className="flex items-center gap-2 rounded-xl bg-green-50 px-4 py-3 font-semibold text-green-700">
                                                     <CheckCircle size={20} />
@@ -369,12 +333,10 @@ function CourseLearning() {
                                                     {progressError}
                                                 </p>
                                             )}
-
                                         </div>
 
                                         {/* PREVIOUS / NEXT */}
                                         <div className="mt-7 flex items-center justify-between border-t border-gray-100 pt-5">
-
                                             <button
                                                 onClick={() => goToLesson(currentIndex - 1)}
                                                 disabled={currentIndex <= 0}
@@ -392,16 +354,13 @@ function CourseLearning() {
                                                 Next Lesson
                                                 <ArrowRight size={17} />
                                             </button>
-
                                         </div>
                                     </div>
                                 )}
 
                                 {/* TABS */}
                                 <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
-
                                     <div className="flex flex-wrap border-b border-gray-200">
-
                                         {["Overview", "Resources", "Notes"].map((tab) => (
                                             <button
                                                 key={tab}
@@ -415,11 +374,9 @@ function CourseLearning() {
                                                 {tab}
                                             </button>
                                         ))}
-
                                     </div>
 
                                     <div className="min-h-36 p-6">
-
                                         {activeTab === "Overview" && (
                                             <div>
                                                 <h3 className="text-lg font-bold text-gray-900">
@@ -446,20 +403,20 @@ function CourseLearning() {
                                         )}
 
                                         {activeTab === "Notes" && (
-                                            <NotesSection lessonId={activeLesson?.id} />
+                                            <NotesSection
+                                                key={activeLesson?.id}
+                                                lessonId={activeLesson?.id}
+                                                lessonTitle={activeLesson?.title}
+                                            />
                                         )}
-
                                     </div>
                                 </div>
-
                             </div>
 
                             {/* COURSE SIDEBAR */}
                             <div className="h-fit overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
 
-                                {/* SIDEBAR HEADER */}
                                 <div className="border-b border-gray-200 p-5">
-
                                     <h2 className="text-xl font-bold text-gray-900">
                                         Course Content
                                     </h2>
@@ -491,14 +448,11 @@ function CourseLearning() {
                                     <p className="mt-2 text-xs text-gray-500">
                                         Total duration: {totalDuration} minutes
                                     </p>
-
                                 </div>
 
                                 {/* LESSON LIST */}
                                 <div className="max-h-[650px] space-y-2 overflow-y-auto p-3">
-
                                     {lessons.map((lesson, index) => {
-
                                         const isActive =
                                             Number(activeLessonId) === Number(lesson.id);
 
@@ -515,7 +469,6 @@ function CourseLearning() {
                                                         : "border-transparent hover:bg-gray-50"
                                                 }`}
                                             >
-
                                                 <div
                                                     className={`mt-0.5 rounded-lg p-2 ${
                                                         isCompleted
@@ -533,7 +486,6 @@ function CourseLearning() {
                                                 </div>
 
                                                 <div className="min-w-0 flex-1">
-
                                                     <h3
                                                         className={`text-sm font-semibold ${
                                                             isActive
@@ -556,7 +508,6 @@ function CourseLearning() {
                                                             Completed
                                                         </p>
                                                     )}
-
                                                 </div>
 
                                                 {isActive && (
@@ -565,7 +516,6 @@ function CourseLearning() {
                                                         className="shrink-0 text-blue-600"
                                                     />
                                                 )}
-
                                             </button>
                                         );
                                     })}
@@ -575,11 +525,8 @@ function CourseLearning() {
                                             No lessons available for this course.
                                         </p>
                                     )}
-
                                 </div>
-
                             </div>
-
                         </div>
                     </section>
                 </>
@@ -588,30 +535,251 @@ function CourseLearning() {
     );
 }
 
-// NOTES SECTION
-function NotesSection({ lessonId }) {
-    const [note, setNote] = useState("");
 
+// DATABASE CONNECTED NOTES SECTION
+function NotesSection({ lessonId, lessonTitle }) {
+    const [noteId, setNoteId] = useState(null);
+    const [title, setTitle] = useState("");
+    const [content, setContent] = useState("");
+
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [deleting, setDeleting] = useState(false);
+
+    const [error, setError] = useState("");
+    const [message, setMessage] = useState("");
+
+    // FETCH NOTE FOR CURRENT LESSON
     useEffect(() => {
-        setNote("");
-    }, [lessonId]);
+        let isMounted = true;
+
+        const fetchNote = async () => {
+            if (!lessonId) return;
+
+            try {
+                setLoading(true);
+                setError("");
+                setMessage("");
+
+                const response = await api.get(
+                    `/notes/lesson/${lessonId}`
+                );
+
+                if (!isMounted) return;
+
+                const savedNote = response.data.note;
+
+                if (savedNote) {
+                    setNoteId(savedNote.id);
+                    setTitle(savedNote.title || "");
+                    setContent(savedNote.content || "");
+                } else {
+                    setNoteId(null);
+                    setTitle(lessonTitle || "");
+                    setContent("");
+                }
+            } catch (error) {
+                if (!isMounted) return;
+
+                setError(
+                    error.response?.data?.message ||
+                    "Failed to load note."
+                );
+            } finally {
+                if (isMounted) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        fetchNote();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [lessonId, lessonTitle]);
+
+    // SAVE OR UPDATE NOTE
+    const handleSaveNote = async () => {
+        if (!lessonId || saving) return;
+
+        if (!title.trim() || !content.trim()) {
+            setError("Please enter both note title and content.");
+            return;
+        }
+
+        try {
+            setSaving(true);
+            setError("");
+            setMessage("");
+
+            if (noteId) {
+                await api.put(`/notes/${noteId}`, {
+                    title: title.trim(),
+                    content: content.trim(),
+                });
+
+                setMessage("Note updated successfully.");
+            } else {
+                const response = await api.post("/notes", {
+                    lessonId: Number(lessonId),
+                    title: title.trim(),
+                    content: content.trim(),
+                });
+
+                const savedNote = response.data.note;
+
+                if (savedNote?.id) {
+                    setNoteId(savedNote.id);
+                } else {
+                    // Fetch the saved note to get its database ID
+                    const noteResponse = await api.get(
+                        `/notes/lesson/${lessonId}`
+                    );
+
+                    setNoteId(noteResponse.data.note?.id || null);
+                }
+
+                setMessage("Note saved successfully.");
+            }
+        } catch (error) {
+            setError(
+                error.response?.data?.message ||
+                "Failed to save note."
+            );
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    // DELETE NOTE
+    const handleDeleteNote = async () => {
+        if (!noteId || deleting) return;
+
+        try {
+            setDeleting(true);
+            setError("");
+            setMessage("");
+
+            await api.delete(`/notes/${noteId}`);
+
+            setNoteId(null);
+            setTitle(lessonTitle || "");
+            setContent("");
+
+            setMessage("Note deleted successfully.");
+        } catch (error) {
+            setError(
+                error.response?.data?.message ||
+                "Failed to delete note."
+            );
+        } finally {
+            setDeleting(false);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="py-8 text-center text-sm text-gray-500">
+                Loading your notes...
+            </div>
+        );
+    }
 
     return (
         <div>
-            <h3 className="text-lg font-bold text-gray-900">
-                My Notes
-            </h3>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <h3 className="text-lg font-bold text-gray-900">
+                        My Notes
+                    </h3>
 
-            <textarea
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="Write your notes for this lesson..."
-                rows={5}
-                className="mt-4 w-full resize-y rounded-xl border border-gray-200 p-4 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            />
+                    <p className="mt-1 text-sm text-gray-500">
+                        Your personal notes for this lesson
+                    </p>
+                </div>
 
-            <p className="mt-2 text-xs text-gray-400">
-                Notes are temporary and will reset when you change lessons or leave this page.
+                {noteId && (
+                    <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                        Saved Note
+                    </span>
+                )}
+            </div>
+
+            {/* NOTE TITLE */}
+            <div className="mt-5">
+                <label className="mb-2 block text-sm font-semibold text-gray-700">
+                    Note Title
+                </label>
+
+                <input
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Enter note title..."
+                    maxLength={255}
+                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
+            </div>
+
+            {/* NOTE CONTENT */}
+            <div className="mt-4">
+                <label className="mb-2 block text-sm font-semibold text-gray-700">
+                    Note Content
+                </label>
+
+                <textarea
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    placeholder="Write your notes for this lesson..."
+                    rows={6}
+                    className="w-full resize-y rounded-xl border border-gray-200 p-4 text-sm leading-6 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
+            </div>
+
+            {/* ERROR */}
+            {error && (
+                <p className="mt-3 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+                    {error}
+                </p>
+            )}
+
+            {/* SUCCESS */}
+            {message && (
+                <p className="mt-3 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700">
+                    {message}
+                </p>
+            )}
+
+            {/* ACTION BUTTONS */}
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+                <button
+                    onClick={handleSaveNote}
+                    disabled={saving || deleting}
+                    className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                    <Save size={17} />
+                    {saving
+                        ? "Saving..."
+                        : noteId
+                            ? "Update Note"
+                            : "Save Note"}
+                </button>
+
+                {noteId && (
+                    <button
+                        onClick={handleDeleteNote}
+                        disabled={saving || deleting}
+                        className="flex items-center gap-2 rounded-xl border border-red-200 px-5 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                        <Trash2 size={17} />
+                        {deleting ? "Deleting..." : "Delete Note"}
+                    </button>
+                )}
+            </div>
+
+            <p className="mt-4 text-xs text-gray-400">
+                Your notes are saved to your account and remain available when you return to this lesson.
             </p>
         </div>
     );
