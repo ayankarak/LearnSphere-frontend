@@ -5,6 +5,7 @@ import { AuthProvider } from "./context/AuthContext";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import ActivityTracker from "./components/ActivityTracker";
+import GoalCalendar from "./pages/GoalCalendar";
 
 import Home from "./pages/Home";
 import Courses from "./pages/Courses";
@@ -37,10 +38,8 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/my-courses" element={<MyCourses />} />
-            <Route
-              path="/learn/:courseId"
-              element={<CourseLearning />}
-            />
+            <Route path="/learn/:courseId" element={<CourseLearning />} />
+            <Route path="/goal-calendar" element={<GoalCalendar />} />
           </Route>
         </Routes>
 
