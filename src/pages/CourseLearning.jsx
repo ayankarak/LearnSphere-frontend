@@ -1,10 +1,24 @@
-
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 
-import { ArrowLeft, ArrowRight, BookOpen, CheckCircle, Clock, PlayCircle, UserRound, Check, Save, Trash2 } from "lucide-react";
+import {
+    ArrowLeft,
+    ArrowRight,
+    BookOpen,
+    CheckCircle,
+    Clock,
+    PlayCircle,
+    UserRound,
+    Check,
+    Save,
+    Trash2,
+    Bot,
+    Sparkles
+} from "lucide-react";
+
 import Navbar from "../components/Navbar";
 import api from "../api/axios";
+import AIAssistant from "../components/AIAssistant";
 
 function CourseLearning() {
     const { courseId } = useParams();
@@ -20,9 +34,17 @@ function CourseLearning() {
 
     const [activeTab, setActiveTab] = useState("Overview");
 
+    // SIDEBAR VIEW
+    const [sidebarView, setSidebarView] = useState("content");
+
     // PROGRESS STATES
     const [completedLessons, setCompletedLessons] = useState([]);
-    const [progress, setProgress] = useState({ totalLessons: 0, completedLessons: 0, percentage: 0 });
+
+    const [progress, setProgress] = useState({
+        totalLessons: 0,
+        completedLessons: 0,
+        percentage: 0
+    });
 
     const [completing, setCompleting] = useState(false);
     const [progressError, setProgressError] = useState("");
@@ -61,7 +83,7 @@ function CourseLearning() {
             const [progressResponse, completedResponse] =
                 await Promise.all([
                     api.get(`/progress/course/${courseId}`),
-                    api.get( `/progress/course/${courseId}/completed-lessons` ),
+                    api.get(`/progress/course/${courseId}/completed-lessons`)
                 ]);
 
             setProgress(progressResponse.data.progress);
@@ -174,7 +196,7 @@ function CourseLearning() {
         setActiveLessonId(selectedLesson.id);
 
         setSearchParams({
-            lessonId: String(selectedLesson.id),
+            lessonId: String(selectedLesson.id)
         });
 
         setActiveTab("Overview");
@@ -243,10 +265,10 @@ function CourseLearning() {
 
                     {/* LEARNING SECTION */}
                     <section className="min-h-screen bg-gray-50 px-4 py-8 md:px-8">
-                        <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-3">
+                        <div className="mx-auto grid max-w-7xl items-start gap-6 lg:grid-cols-3">
 
                             {/* VIDEO AND LESSON DETAILS */}
-                            <div className="space-y-6 lg:col-span-2">
+                            <div className="min-w-0 space-y-6 lg:col-span-2">
 
                                 {/* VIDEO PLAYER */}
                                 <div className="overflow-hidden rounded-2xl bg-black shadow-lg">
@@ -358,7 +380,7 @@ function CourseLearning() {
                                     </div>
                                 )}
 
-                                {/* TABS */}
+                                {/* OVERVIEW / RESOURCES / NOTES */}
                                 <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
                                     <div className="flex flex-wrap border-b border-gray-200">
                                         {["Overview", "Resources", "Notes"].map((tab) => (
@@ -377,6 +399,7 @@ function CourseLearning() {
                                     </div>
 
                                     <div className="min-h-36 p-6">
+                                        {/* OVERVIEW */}
                                         {activeTab === "Overview" && (
                                             <div>
                                                 <h3 className="text-lg font-bold text-gray-900">
@@ -390,6 +413,7 @@ function CourseLearning() {
                                             </div>
                                         )}
 
+                                        {/* RESOURCES */}
                                         {activeTab === "Resources" && (
                                             <div>
                                                 <h3 className="text-lg font-bold text-gray-900">
@@ -402,6 +426,7 @@ function CourseLearning() {
                                             </div>
                                         )}
 
+                                        {/* NOTES */}
                                         {activeTab === "Notes" && (
                                             <NotesSection
                                                 key={activeLesson?.id}
@@ -413,119 +438,179 @@ function CourseLearning() {
                                 </div>
                             </div>
 
-                            {/* COURSE SIDEBAR */}
-                            <div className="h-fit overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+                            {/* RIGHT SIDEBAR */}
+                            <div className="flex h-[720px] min-h-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
 
-                                <div className="border-b border-gray-200 p-5">
-                                    <h2 className="text-xl font-bold text-gray-900">
+                                {/* SIDEBAR SELECTOR */}
+                                <div className="grid shrink-0 grid-cols-2 gap-2 border-b border-gray-200 p-3">
+
+                                    <button
+                                        onClick={() => setSidebarView("content")}
+                                        className={`flex items-center justify-center gap-2 rounded-xl px-3 py-3 text-sm font-semibold transition ${
+                                            sidebarView === "content"
+                                                ? "bg-blue-600 text-white shadow-sm"
+                                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                        }`}
+                                    >
+                                        <BookOpen size={17} />
                                         Course Content
-                                    </h2>
+                                    </button>
 
-                                    <p className="mt-2 text-sm text-gray-500">
-                                        {lessons.length} lessons in this course
-                                    </p>
-
-                                    {/* REAL PROGRESS */}
-                                    <div className="mt-5 h-2 overflow-hidden rounded-full bg-gray-100">
-                                        <div
-                                            className="h-full rounded-full bg-green-600 transition-all duration-500"
-                                            style={{
-                                                width: `${progress.percentage}%`,
-                                            }}
-                                        />
-                                    </div>
-
-                                    <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
-                                        <span>
-                                            {progress.completedLessons} of {progress.totalLessons} completed
-                                        </span>
-
-                                        <span className="font-bold text-green-600">
-                                            {progress.percentage}%
-                                        </span>
-                                    </div>
-
-                                    <p className="mt-2 text-xs text-gray-500">
-                                        Total duration: {totalDuration} minutes
-                                    </p>
+                                    <button
+                                        onClick={() => setSidebarView("ai")}
+                                        className={`flex items-center justify-center gap-2 rounded-xl px-3 py-3 text-sm font-semibold transition ${
+                                            sidebarView === "ai"
+                                                ? "bg-blue-600 text-white shadow-sm"
+                                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                        }`}
+                                    >
+                                        <Sparkles size={17} />
+                                        Ask AI
+                                    </button>
                                 </div>
 
-                                {/* LESSON LIST */}
-                                <div className="max-h-[650px] space-y-2 overflow-y-auto p-3">
-                                    {lessons.map((lesson, index) => {
-                                        const isActive =
-                                            Number(activeLessonId) === Number(lesson.id);
+                                {/* COURSE CONTENT VIEW */}
+                                {sidebarView === "content" && (
+                                    <div className="flex min-h-0 flex-1 flex-col">
 
-                                        const isCompleted =
-                                            completedLessons.includes(Number(lesson.id));
+                                        {/* COURSE PROGRESS HEADER */}
+                                        <div className="shrink-0 border-b border-gray-200 p-5">
+                                            <h2 className="text-xl font-bold text-gray-900">
+                                                Course Content
+                                            </h2>
 
-                                        return (
-                                            <button
-                                                key={lesson.id}
-                                                onClick={() => goToLesson(index)}
-                                                className={`flex w-full items-start gap-3 rounded-xl border p-4 text-left transition ${
-                                                    isActive
-                                                        ? "border-blue-200 bg-blue-50"
-                                                        : "border-transparent hover:bg-gray-50"
-                                                }`}
-                                            >
+                                            <p className="mt-2 text-sm text-gray-500">
+                                                {lessons.length} lessons in this course
+                                            </p>
+
+                                            {/* PROGRESS BAR */}
+                                            <div className="mt-5 h-2 overflow-hidden rounded-full bg-gray-100">
                                                 <div
-                                                    className={`mt-0.5 rounded-lg p-2 ${
-                                                        isCompleted
-                                                            ? "bg-green-100 text-green-600"
-                                                            : isActive
-                                                                ? "bg-blue-600 text-white"
-                                                                : "bg-gray-100 text-gray-500"
-                                                    }`}
-                                                >
-                                                    {isCompleted ? (
-                                                        <CheckCircle size={22} />
-                                                    ) : (
-                                                        <PlayCircle size={22} />
-                                                    )}
-                                                </div>
+                                                    className="h-full rounded-full bg-green-600 transition-all duration-500"
+                                                    style={{
+                                                        width: `${progress.percentage}%`
+                                                    }}
+                                                />
+                                            </div>
 
-                                                <div className="min-w-0 flex-1">
-                                                    <h3
-                                                        className={`text-sm font-semibold ${
+                                            <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
+                                                <span>
+                                                    {progress.completedLessons} of {progress.totalLessons} completed
+                                                </span>
+
+                                                <span className="font-bold text-green-600">
+                                                    {progress.percentage}%
+                                                </span>
+                                            </div>
+
+                                            <p className="mt-2 text-xs text-gray-500">
+                                                Total duration: {totalDuration} minutes
+                                            </p>
+                                        </div>
+
+                                        {/* SCROLLABLE LESSON LIST */}
+                                        <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
+                                            {lessons.map((lesson, index) => {
+                                                const isActive =
+                                                    Number(activeLessonId) === Number(lesson.id);
+
+                                                const isCompleted =
+                                                    completedLessons.includes(Number(lesson.id));
+
+                                                return (
+                                                    <button
+                                                        key={lesson.id}
+                                                        onClick={() => goToLesson(index)}
+                                                        className={`flex w-full items-start gap-3 rounded-xl border p-4 text-left transition ${
                                                             isActive
-                                                                ? "text-blue-700"
-                                                                : "text-gray-800"
+                                                                ? "border-blue-200 bg-blue-50"
+                                                                : "border-transparent hover:bg-gray-50"
                                                         }`}
                                                     >
-                                                        {index + 1}. {lesson.title}
-                                                    </h3>
+                                                        <div
+                                                            className={`mt-0.5 rounded-lg p-2 ${
+                                                                isCompleted
+                                                                    ? "bg-green-100 text-green-600"
+                                                                    : isActive
+                                                                        ? "bg-blue-600 text-white"
+                                                                        : "bg-gray-100 text-gray-500"
+                                                            }`}
+                                                        >
+                                                            {isCompleted ? (
+                                                                <CheckCircle size={22} />
+                                                            ) : (
+                                                                <PlayCircle size={22} />
+                                                            )}
+                                                        </div>
 
-                                                    <p className="mt-2 flex items-center gap-1 text-xs text-gray-500">
-                                                        <Clock size={13} />
-                                                        {lesson.duration
-                                                            ? `${lesson.duration} min`
-                                                            : "N/A"}
-                                                    </p>
+                                                        <div className="min-w-0 flex-1">
+                                                            <h3
+                                                                className={`text-sm font-semibold ${
+                                                                    isActive
+                                                                        ? "text-blue-700"
+                                                                        : "text-gray-800"
+                                                                }`}
+                                                            >
+                                                                {index + 1}. {lesson.title}
+                                                            </h3>
 
-                                                    {isCompleted && (
-                                                        <p className="mt-2 text-xs font-semibold text-green-600">
-                                                            Completed
-                                                        </p>
-                                                    )}
-                                                </div>
+                                                            <p className="mt-2 flex items-center gap-1 text-xs text-gray-500">
+                                                                <Clock size={13} />
+                                                                {lesson.duration
+                                                                    ? `${lesson.duration} min`
+                                                                    : "N/A"}
+                                                            </p>
 
-                                                {isActive && (
-                                                    <CheckCircle
-                                                        size={18}
-                                                        className="shrink-0 text-blue-600"
-                                                    />
-                                                )}
-                                            </button>
-                                        );
-                                    })}
+                                                            {isCompleted && (
+                                                                <p className="mt-2 text-xs font-semibold text-green-600">
+                                                                    Completed
+                                                                </p>
+                                                            )}
+                                                        </div>
 
-                                    {lessons.length === 0 && (
-                                        <p className="py-10 text-center text-sm text-gray-500">
-                                            No lessons available for this course.
-                                        </p>
-                                    )}
-                                </div>
+                                                        {isActive && (
+                                                            <CheckCircle
+                                                                size={18}
+                                                                className="shrink-0 text-blue-600"
+                                                            />
+                                                        )}
+                                                    </button>
+                                                );
+                                            })}
+
+                                            {lessons.length === 0 && (
+                                                <p className="py-10 text-center text-sm text-gray-500">
+                                                    No lessons available for this course.
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* AI ASSISTANT VIEW */}
+                                {sidebarView === "ai" && (
+                                    activeLesson ? (
+                                        <AIAssistant
+                                            key={activeLesson.id}
+                                            courseId={course.id}
+                                            lessonId={activeLesson.id}
+                                            lessonTitle={activeLesson.title}
+                                        />
+                                    ) : (
+                                        <div className="flex flex-1 items-center justify-center p-6 text-center">
+                                            <div>
+                                                <Bot
+                                                    size={40}
+                                                    className="mx-auto text-gray-300"
+                                                />
+
+                                                <p className="mt-4 text-sm text-gray-500">
+                                                    Select a lesson to start chatting with AI.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )
+                                )}
                             </div>
                         </div>
                     </section>
@@ -616,7 +701,7 @@ function NotesSection({ lessonId, lessonTitle }) {
             if (noteId) {
                 await api.put(`/notes/${noteId}`, {
                     title: title.trim(),
-                    content: content.trim(),
+                    content: content.trim()
                 });
 
                 setMessage("Note updated successfully.");
@@ -624,7 +709,7 @@ function NotesSection({ lessonId, lessonTitle }) {
                 const response = await api.post("/notes", {
                     lessonId: Number(lessonId),
                     title: title.trim(),
-                    content: content.trim(),
+                    content: content.trim()
                 });
 
                 const savedNote = response.data.note;
@@ -632,7 +717,6 @@ function NotesSection({ lessonId, lessonTitle }) {
                 if (savedNote?.id) {
                     setNoteId(savedNote.id);
                 } else {
-                    // Fetch the saved note to get its database ID
                     const noteResponse = await api.get(
                         `/notes/lesson/${lessonId}`
                     );
