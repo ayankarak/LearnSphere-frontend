@@ -3,9 +3,10 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 
 import {
     ArrowLeft, ArrowRight, BookOpen, CheckCircle, Clock, PlayCircle, UserRound, Check, Save, Trash2,
-    Bot, Sparkles, Layers
+    Bot, Sparkles, Layers, MessageSquare
 } from "lucide-react";
 
+import DiscussionForum from "../components/DiscussionForum";
 import Navbar from "../components/Navbar";
 import api from "../api/axios";
 import AIAssistant from "../components/AIAssistant";
@@ -256,7 +257,7 @@ function CourseLearning() {
 
                     {/* LEARNING SECTION */}
                     <section className="min-h-screen bg-gray-50 px-4 py-8 md:px-8">
-                        <div className="mx-auto grid max-w-7xl items-start gap-6 lg:grid-cols-3">
+                        <div className="mx-auto grid max-w-8xl items-start gap-6 lg:grid-cols-3">
 
                             {/* VIDEO AND LESSON DETAILS */}
                             <div className="min-w-0 space-y-6 lg:col-span-2">
@@ -432,7 +433,7 @@ function CourseLearning() {
                             <div className="flex h-[720px] min-h-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
 
                                 {/* SIDEBAR SELECTOR */}
-                                <div className="grid shrink-0 grid-cols-3 gap-2 border-b border-gray-200 p-3">
+                                <div className="grid shrink-0 grid-cols-4 gap-2 border-b border-gray-200 p-3">
 
                                     <button
                                         onClick={() => setSidebarView("content")}
@@ -464,6 +465,16 @@ function CourseLearning() {
                                     >
                                         <Layers size={15} />
                                         Flashcards
+                                    </button>
+                                    <button
+                                        onClick={() => setSidebarView("discussion")}
+                                        className={`flex items-center justify-center gap-1 rounded-lg px-1 py-2 text-xs font-semibold transition ${sidebarView === "discussion"
+                                            ? "bg-indigo-100 text-indigo-700"
+                                            : "text-gray-500 hover:bg-gray-100"
+                                            }`}
+                                    >
+                                        <MessageSquare size={15} />
+                                        Discussion
                                     </button>
                                 </div>
 
@@ -611,6 +622,13 @@ function CourseLearning() {
                                     <FlashcardStudy
                                         key={activeLesson.id}
                                         lessonId={activeLesson.id}
+                                    />
+                                )}
+                                {/* DISCUSSION VIEW */}
+                                {sidebarView === "discussion" && (
+                                    <DiscussionForum
+                                        key={course.id}
+                                        courseId={course.id}
                                     />
                                 )}
                             </div>
