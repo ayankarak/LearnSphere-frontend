@@ -2,23 +2,14 @@ import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 
 import {
-    ArrowLeft,
-    ArrowRight,
-    BookOpen,
-    CheckCircle,
-    Clock,
-    PlayCircle,
-    UserRound,
-    Check,
-    Save,
-    Trash2,
-    Bot,
-    Sparkles
+    ArrowLeft, ArrowRight, BookOpen, CheckCircle, Clock, PlayCircle, UserRound, Check, Save, Trash2,
+    Bot, Sparkles, Layers
 } from "lucide-react";
 
 import Navbar from "../components/Navbar";
 import api from "../api/axios";
 import AIAssistant from "../components/AIAssistant";
+import FlashcardStudy from "../components/FlashcardStudy";
 
 function CourseLearning() {
     const { courseId } = useParams();
@@ -387,11 +378,10 @@ function CourseLearning() {
                                             <button
                                                 key={tab}
                                                 onClick={() => setActiveTab(tab)}
-                                                className={`px-6 py-4 text-sm font-semibold transition ${
-                                                    activeTab === tab
-                                                        ? "border-b-2 border-blue-600 text-blue-600"
-                                                        : "text-gray-500 hover:text-gray-900"
-                                                }`}
+                                                className={`px-6 py-4 text-sm font-semibold transition ${activeTab === tab
+                                                    ? "border-b-2 border-blue-600 text-blue-600"
+                                                    : "text-gray-500 hover:text-gray-900"
+                                                    }`}
                                             >
                                                 {tab}
                                             </button>
@@ -442,15 +432,14 @@ function CourseLearning() {
                             <div className="flex h-[720px] min-h-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
 
                                 {/* SIDEBAR SELECTOR */}
-                                <div className="grid shrink-0 grid-cols-2 gap-2 border-b border-gray-200 p-3">
+                                <div className="grid shrink-0 grid-cols-3 gap-2 border-b border-gray-200 p-3">
 
                                     <button
                                         onClick={() => setSidebarView("content")}
-                                        className={`flex items-center justify-center gap-2 rounded-xl px-3 py-3 text-sm font-semibold transition ${
-                                            sidebarView === "content"
-                                                ? "bg-blue-600 text-white shadow-sm"
-                                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                                        }`}
+                                        className={`flex items-center justify-center gap-2 rounded-xl px-3 py-3 text-sm font-semibold transition ${sidebarView === "content"
+                                            ? "bg-blue-600 text-white shadow-sm"
+                                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                            }`}
                                     >
                                         <BookOpen size={17} />
                                         Course Content
@@ -458,14 +447,23 @@ function CourseLearning() {
 
                                     <button
                                         onClick={() => setSidebarView("ai")}
-                                        className={`flex items-center justify-center gap-2 rounded-xl px-3 py-3 text-sm font-semibold transition ${
-                                            sidebarView === "ai"
-                                                ? "bg-blue-600 text-white shadow-sm"
-                                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                                        }`}
+                                        className={`flex items-center justify-center gap-2 rounded-xl px-3 py-3 text-sm font-semibold transition ${sidebarView === "ai"
+                                            ? "bg-blue-600 text-white shadow-sm"
+                                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                            }`}
                                     >
                                         <Sparkles size={17} />
                                         Ask AI
+                                    </button>
+                                    <button
+                                        onClick={() => setSidebarView("flashcards")}
+                                        className={`flex items-center justify-center gap-1 rounded-lg px-2 py-2 text-xs font-semibold transition ${sidebarView === "flashcards"
+                                            ? "bg-indigo-100 text-indigo-700"
+                                            : "text-gray-500 hover:bg-gray-100"
+                                            }`}
+                                    >
+                                        <Layers size={15} />
+                                        Flashcards
                                     </button>
                                 </div>
 
@@ -521,20 +519,18 @@ function CourseLearning() {
                                                     <button
                                                         key={lesson.id}
                                                         onClick={() => goToLesson(index)}
-                                                        className={`flex w-full items-start gap-3 rounded-xl border p-4 text-left transition ${
-                                                            isActive
-                                                                ? "border-blue-200 bg-blue-50"
-                                                                : "border-transparent hover:bg-gray-50"
-                                                        }`}
+                                                        className={`flex w-full items-start gap-3 rounded-xl border p-4 text-left transition ${isActive
+                                                            ? "border-blue-200 bg-blue-50"
+                                                            : "border-transparent hover:bg-gray-50"
+                                                            }`}
                                                     >
                                                         <div
-                                                            className={`mt-0.5 rounded-lg p-2 ${
-                                                                isCompleted
-                                                                    ? "bg-green-100 text-green-600"
-                                                                    : isActive
-                                                                        ? "bg-blue-600 text-white"
-                                                                        : "bg-gray-100 text-gray-500"
-                                                            }`}
+                                                            className={`mt-0.5 rounded-lg p-2 ${isCompleted
+                                                                ? "bg-green-100 text-green-600"
+                                                                : isActive
+                                                                    ? "bg-blue-600 text-white"
+                                                                    : "bg-gray-100 text-gray-500"
+                                                                }`}
                                                         >
                                                             {isCompleted ? (
                                                                 <CheckCircle size={22} />
@@ -545,11 +541,10 @@ function CourseLearning() {
 
                                                         <div className="min-w-0 flex-1">
                                                             <h3
-                                                                className={`text-sm font-semibold ${
-                                                                    isActive
-                                                                        ? "text-blue-700"
-                                                                        : "text-gray-800"
-                                                                }`}
+                                                                className={`text-sm font-semibold ${isActive
+                                                                    ? "text-blue-700"
+                                                                    : "text-gray-800"
+                                                                    }`}
                                                             >
                                                                 {index + 1}. {lesson.title}
                                                             </h3>
@@ -610,6 +605,13 @@ function CourseLearning() {
                                             </div>
                                         </div>
                                     )
+                                )}
+                                {/* FLASHCARDS VIEW */}
+                                {sidebarView === "flashcards" && activeLesson && (
+                                    <FlashcardStudy
+                                        key={activeLesson.id}
+                                        lessonId={activeLesson.id}
+                                    />
                                 )}
                             </div>
                         </div>

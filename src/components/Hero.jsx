@@ -1,8 +1,16 @@
 
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, BookOpen, GraduationCap, PlayCircle, Users,
-    Target, CheckCircle2, CalendarDays } from "lucide-react";
+import {
+    ArrowRight,
+    BookOpen,
+    GraduationCap,
+    PlayCircle,
+    Users,
+    Target,
+    CheckCircle2,
+    CalendarDays,
+} from "lucide-react";
 
 import { useAuth } from "../context/AuthContext";
 import api from "../api/axios";
@@ -18,7 +26,7 @@ function Hero() {
         new Intl.DateTimeFormat("en-IN", {
             timeZone: "Asia/Kolkata",
             hour: "2-digit",
-            hourCycle: "h23"
+            hourCycle: "h23",
         }).format(new Date())
     );
 
@@ -27,7 +35,9 @@ function Hero() {
             ? "Good Morning"
             : currentHour >= 12 && currentHour < 17
                 ? "Good Afternoon"
-                : "Good Evening";
+                : currentHour >= 17 && currentHour < 20
+                    ? "Good Evening"
+                    : "Good Night";
 
     // FETCH TODAY'S GOAL
     useEffect(() => {
@@ -46,10 +56,10 @@ function Hero() {
                 const response = await api.get("/goals");
 
                 const today = new Intl.DateTimeFormat("en-CA", {
-                    timeZone: "Asia/Kolkata"
+                    timeZone: "Asia/Kolkata",
                 }).format(new Date());
 
-                const goal = response.data.goals.find(
+                const goal = (response.data.goals || []).find(
                     (item) => item.goalDate === today
                 );
 
@@ -59,6 +69,8 @@ function Hero() {
                     "Failed to fetch today's goal:",
                     error.response?.data?.message || error.message
                 );
+
+                setTodayGoal(null);
             } finally {
                 setGoalLoading(false);
             }
@@ -67,25 +79,35 @@ function Hero() {
         fetchTodayGoal();
     }, [user, loading]);
 
-    const completed = todayGoal?.completedLessons || 0;
-    const target = todayGoal?.targetLessons || 0;
+    // TASK-BASED GOAL DATA
+    const todayTasks = todayGoal?.tasks || [];
 
-    const progress = target > 0
-        ? Math.min((completed / target) * 100, 100)
-        : 0;
+    const totalTasks = todayTasks.length;
+
+    const completedTasks = todayTasks.filter(
+        (task) => task.isCompleted
+    ).length;
+
+    const progress =
+        totalTasks > 0
+            ? Math.min((completedTasks / totalTasks) * 100, 100)
+            : 0;
+
+    const isGoalCompleted =
+        totalTasks > 0 && completedTasks === totalTasks;
 
     return (
         <section className="bg-gradient-to-br from-blue-50 via-white to-indigo-50 px-6 py-20 md:px-12 lg:px-20">
             <div className="mx-auto grid max-w-7xl items-center gap-14 lg:grid-cols-2">
 
-                {/* Left Content */}
+                {/* LEFT CONTENT */}
                 <div>
                     <span className="mb-6 inline-flex items-center gap-2 rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-700">
                         <GraduationCap size={18} />
                         Your Learning Journey Starts Here
                     </span>
 
-                    {/* Dynamic Hero Heading */}
+                    {/* DYNAMIC HERO HEADING */}
                     {user ? (
                         <div>
                             <p className="mb-2 text-lg font-semibold text-blue-600 md:text-xl">
@@ -113,7 +135,7 @@ function Hero() {
                         and develop the skills you need to achieve your career goals.
                     </p>
 
-                    {/* Buttons */}
+                    {/* BUTTONS */}
                     <div className="mt-8 flex flex-wrap gap-4">
                         <Link
                             to="/courses"
@@ -140,7 +162,7 @@ function Hero() {
                         </Link>
                     </div>
 
-                    {/* Statistics */}
+                    {/* STATISTICS */}
                     <div className="mt-12 flex flex-wrap gap-8">
                         <div>
                             <div className="flex items-center gap-2 text-2xl font-bold text-gray-900">
@@ -174,7 +196,7 @@ function Hero() {
                     </div>
                 </div>
 
-                {/* Right Card */}
+                {/* RIGHT CARD */}
                 <div className="relative flex justify-center">
                     <div className="absolute -left-5 top-10 h-32 w-32 rounded-full bg-blue-200/50 blur-3xl"></div>
 
@@ -184,7 +206,7 @@ function Hero() {
 
                         {!loading && user ? (
 
-                            /* Logged-in User: Today's Goal */
+                            /* LOGGED-IN USER: TODAY'S GOAL */
                             <div className="rounded-3xl border border-blue-100 bg-white p-6 shadow-2xl shadow-blue-100">
 
                                 <div className="flex items-center justify-between border-b border-gray-100 pb-5">
@@ -211,9 +233,9 @@ function Hero() {
                                             Loading your goal...
                                         </p>
                                     </div>
-                                ) : todayGoal ? (
+                                ) : todayGoal && totalTasks > 0 ? (
 
-                                    /* Goal Exists */
+                                    /* TASK-BASED GOAL EXISTS */
                                     <div className="py-7">
 
                                         <div className="mb-6 text-center">
@@ -226,18 +248,20 @@ function Hero() {
                                             </h3>
 
                                             <p className="mt-2 text-sm text-gray-500">
-                                                Complete your daily lesson target.
+                                                Complete your planned learning tasks today.
                                             </p>
                                         </div>
 
+                                        {/* TASK STATISTICS */}
                                         <div className="grid grid-cols-2 gap-4">
+
                                             <div className="rounded-xl bg-blue-50 p-4">
                                                 <p className="text-sm text-gray-500">
-                                                    Target Lessons
+                                                    Total Tasks
                                                 </p>
 
                                                 <p className="mt-2 text-3xl font-bold text-blue-600">
-                                                    {target}
+                                                    {totalTasks}
                                                 </p>
                                             </div>
 
@@ -247,13 +271,15 @@ function Hero() {
                                                 </p>
 
                                                 <p className="mt-2 text-3xl font-bold text-indigo-600">
-                                                    {completed}
+                                                    {completedTasks}
                                                 </p>
                                             </div>
+
                                         </div>
 
-                                        {/* Progress Bar */}
+                                        {/* PROGRESS BAR */}
                                         <div className="mt-6">
+
                                             <div className="mb-2 flex items-center justify-between text-sm">
                                                 <span className="font-semibold text-gray-700">
                                                     Daily Progress
@@ -268,54 +294,104 @@ function Hero() {
                                                 <div
                                                     className="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 transition-all duration-500"
                                                     style={{
-                                                        width: `${progress}%`
+                                                        width: `${progress}%`,
                                                     }}
                                                 ></div>
                                             </div>
 
                                             <p className="mt-3 text-sm text-gray-500">
-                                                {completed >= target
-                                                    ? "Amazing! Today's goal completed."
-                                                    : `${Math.max(target - completed, 0)} more lessons to reach your goal.`
+                                                {isGoalCompleted
+                                                    ? "Amazing! All your tasks are completed."
+                                                    : `${totalTasks - completedTasks} more tasks to complete today's goal.`
                                                 }
                                             </p>
+
                                         </div>
 
-                                        {completed >= target && (
+                                        {/* TODAY'S TASK LIST */}
+                                        <div className="mt-6">
+                                            <div className="mb-3 flex items-center justify-between">
+                                                <h4 className="font-bold text-gray-800">
+                                                    Today's Tasks
+                                                </h4>
+
+                                                <span className="text-xs font-semibold text-gray-500">
+                                                    {completedTasks}/{totalTasks} Completed
+                                                </span>
+                                            </div>
+
+                                            <div className="space-y-3">
+                                                {todayTasks.map((task) => (
+                                                    <div
+                                                        key={task.id}
+                                                        className="flex items-start gap-3 rounded-xl border border-gray-100 bg-gray-50 p-3"
+                                                    >
+                                                        <CheckCircle2
+                                                            size={19}
+                                                            className={`mt-0.5 shrink-0 ${task.isCompleted
+                                                                    ? "text-green-600" : "text-gray-300" }`}
+                                                        />
+
+                                                        <p
+                                                            className={`min-w-0 flex-1 break-words text-sm font-medium ${task.isCompleted
+                                                                    ? "text-gray-400 line-through" : "text-gray-700" }`}
+                                                        >
+                                                            {task.taskText}
+                                                        </p>
+
+                                                        <span
+                                                            className={`shrink-0 text-xs font-semibold ${task.isCompleted
+                                                                    ? "text-green-600"
+                                                                    : "text-gray-400"
+                                                                }`}
+                                                        >
+                                                            {task.isCompleted ? "Done" : "Pending"}
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* COMPLETION MESSAGE */}
+                                        {isGoalCompleted && (
                                             <div className="mt-5 flex items-center gap-2 rounded-xl bg-green-50 p-3 text-sm font-medium text-green-700">
                                                 <CheckCircle2 size={19} />
                                                 Daily goal achieved!
                                             </div>
                                         )}
+
                                     </div>
 
                                 ) : (
 
-                                    /* No Goal Exists */
+                                    /* NO TASKS PLANNED */
                                     <div className="py-12 text-center">
+
                                         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
                                             <Target size={32} />
                                         </div>
 
                                         <h3 className="mt-5 text-xl font-bold text-gray-900">
-                                            Set Your Daily Goal
+                                            Plan Today's Learning
                                         </h3>
 
                                         <p className="mx-auto mt-2 max-w-xs text-sm leading-6 text-gray-500">
-                                            Decide how many lessons you want to complete today and stay consistent with your learning.
+                                            You haven't added any learning tasks for today.
+                                            Create your tasks and track your daily progress.
                                         </p>
 
                                         <Link
                                             to="/goal-calendar"
                                             className="mt-6 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700"
                                         >
-                                            Set Today's Goal
+                                            Add Today's Tasks
                                             <ArrowRight size={18} />
                                         </Link>
+
                                     </div>
                                 )}
 
-                                {/* Manage Goals */}
+                                {/* MANAGE GOALS */}
                                 <div className="border-t border-gray-100 pt-4">
                                     <Link
                                         to="/goal-calendar"
@@ -329,7 +405,7 @@ function Hero() {
 
                         ) : (
 
-                            /* Guest User: Featured Course Card */
+                            /* GUEST USER: FEATURED COURSE CARD */
                             <div className="relative w-full rounded-3xl border border-blue-100 bg-white p-5 shadow-2xl shadow-blue-100">
 
                                 <div className="flex items-center justify-between border-b border-gray-100 pb-4">

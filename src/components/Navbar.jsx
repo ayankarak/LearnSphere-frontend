@@ -18,9 +18,9 @@ function Navbar() {
         { name: "Categories", path: "/categories" },
         ...(user
             ? [
-                { name: "Dashboard", path: "/dashboard" },
                 { name: "My Courses", path: "/my-courses" },
                 { name: "Goal Calendar", path: "/goal-calendar" },
+                { name: "Dashboard", path: "/dashboard" },
             ]
             : []),
     ];
